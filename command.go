@@ -1,8 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
+	"log"
 )
 
 type Command struct {
@@ -16,7 +16,7 @@ type Commands struct {
 
 func handlerLogin(s *state, cmd Command) error {
 	if len(cmd.args) == 0 {
-		return errors.New("A username is required to login")
+		log.Fatal("A username is required to login")
 	}
 	err := s.config.SetUser(cmd.args[0])
 	if err != nil {

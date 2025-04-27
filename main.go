@@ -15,7 +15,7 @@ func main() {
 		log.Fatalf("Error reading config: %v", err)
 	}
 
-	// Initialize to state keep track of changes
+	// Initialize state keep track of changes
 	s := &state{config: &cfg}
 
 	cmds := Commands{opts: make(map[string]func(*state, Command) error)}
