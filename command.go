@@ -1,9 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"log"
-)
+const url = "https://www.wagslane.dev/index.xml"
 
 type Command struct {
 	name string
@@ -12,18 +9,6 @@ type Command struct {
 
 type Commands struct {
 	opts map[string]func(*state, Command) error
-}
-
-func handlerLogin(s *state, cmd Command) error {
-	if len(cmd.args) == 0 {
-		log.Fatal("A username is required to login")
-	}
-	err := s.config.SetUser(cmd.args[0])
-	if err != nil {
-		return err
-	}
-	fmt.Println("Username has been set!")
-	return nil
 }
 
 func (c *Commands) run(s *state, cmd Command) error {

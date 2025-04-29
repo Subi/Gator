@@ -1,8 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
+	_ "github.com/lib/pq"
 	"github.com/subi/gator/internal/config"
+	"github.com/subi/gator/internal/database"
 	"log"
 	"os"
 )
@@ -15,12 +17,32 @@ func main() {
 		log.Fatalf("Error reading config: %v", err)
 	}
 
+	// Initiate db connection
+
+	db, err := sql.Open("postgres", cfg.DbURL)
+	if err != nil {
+		log.Fatalf("Error opening database connection: %v", err)
+	}
+
+	dbQueries := database.New(db)
+	defer db.Close()
+
 	// Initialize state keep track of changes
-	s := &state{config: &cfg}
+	s := &state{
+		db:     dbQueries,
+		config: &cfg,
+	}
 
 	cmds := Commands{opts: make(map[string]func(*state, Command) error)}
+
 	// Register handlers
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
+	cmds.register("reset", handlerReset)
+	cmds.register("users", handlerGetUsers)
+	cmds.register("agg", handlerFetchFeed)
+	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("feeds", handlerListFeeds)
 
 	// Check if length of arguments is at least 2
 	if len(os.Args) < 2 {
@@ -35,6 +57,6 @@ func main() {
 	// Process command values submitted by user
 	err = cmds.run(s, cmd)
 	if err != nil {
-		fmt.Printf("Error running command: %v\n", err)
+		log.Fatalf("Error running command: %v\n", err)
 	}
 }
