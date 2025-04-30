@@ -74,22 +74,72 @@ func handlerListFeeds(s *state, cmd Command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd Command) error {
+func handlerAddFeed(s *state, cmd Command, user database.User) error {
 	if len(cmd.args) < 2 {
 		return errors.New("please provide a name and url for feed")
 	}
-	u, err := s.db.GetUser(context.Background(), s.config.CurrentUsername)
-	if err != nil {
-		return err
-	}
+	name := cmd.args[0]
+	url := cmd.args[1]
 	f, err := s.db.CreateFeed(context.Background(), database.CreateFeedParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-		Name:      cmd.args[0],
-		Url:       cmd.args[1],
-		UserID:    u.ID,
+		Name:      name,
+		Url:       url,
+		UserID:    user.ID,
 	})
-	fmt.Print(f)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    user.ID,
+		FeedID:    f.ID,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func handlerFollowFeed(s *state, cmd Command, user database.User) error {
+	url := cmd.args[0]
+	f, err := s.db.FindFeed(context.Background(), url)
+	if err != nil {
+		return err
+	}
+	followFeed, err := s.db.CreateFeedFollow(context.Background(), database.CreateFeedFollowParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    user.ID,
+		FeedID:    f.ID,
+	})
+	fmt.Print(followFeed)
+	return nil
+}
+
+func handlerFollowing(s *state, cmd Command, user database.User) error {
+	following, err := s.db.GetFeedFollowForUser(context.Background(), user.ID)
+	if err != nil {
+		return err
+	}
+	for _, follow := range following {
+		fmt.Println(follow.FeedName)
+	}
+	return nil
+}
+
+func handlerUnfollowFeed(s *state, cmd Command, user database.User) error {
+	url := cmd.args[0]
+	err := s.db.DeleteFeedFollowForUser(context.Background(), database.DeleteFeedFollowForUserParams{
+		UserID: user.ID,
+		Url:    url,
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }

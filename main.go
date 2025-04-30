@@ -41,10 +41,13 @@ func main() {
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerGetUsers)
 	cmds.register("agg", handlerFetchFeed)
-	cmds.register("addfeed", handlerAddFeed)
 	cmds.register("feeds", handlerListFeeds)
+	cmds.register("addfeed", middlewareLoggedIn(handlerAddFeed))
+	cmds.register("follow", middlewareLoggedIn(handlerFollowFeed))
+	cmds.register("following", middlewareLoggedIn(handlerFollowing))
+	cmds.register("unfollow", middlewareLoggedIn(handlerUnfollowFeed))
 
-	// Check if length of arguments is at least 2
+	// Check if the length of arguments is at least 2
 	if len(os.Args) < 2 {
 		log.Fatal("Please provide a command")
 	}
