@@ -1,7 +1,5 @@
 package main
 
-const url = "https://www.wagslane.dev/index.xml"
-
 type Command struct {
 	name string
 	args []string

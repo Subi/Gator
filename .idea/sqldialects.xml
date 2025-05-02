@@ -3,11 +3,14 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/sql/queries/feed_follows.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/sql/queries/feeds.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/sql/queries/posts.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/sql/queries/users.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00003_add_user_table.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/00004_add_feeds_table.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/001_users.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/002_feeds.sql" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/sql/schema/005_feed_follows.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/sql/schema/006_add_lastfetchedat_column.sql" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/sql/schema/007_add_post_table.sql" dialect="GenericSQL" />
   </component>
 </project>

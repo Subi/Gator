@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-
 	// Read environment variables from config file
 	cfg, err := config.Read()
 	if err != nil {
@@ -18,7 +17,6 @@ func main() {
 	}
 
 	// Initiate db connection
-
 	db, err := sql.Open("postgres", cfg.DbURL)
 	if err != nil {
 		log.Fatalf("Error opening database connection: %v", err)
@@ -40,12 +38,13 @@ func main() {
 	cmds.register("register", handlerRegister)
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerGetUsers)
-	cmds.register("agg", handlerFetchFeed)
+	cmds.register("agg", initScrape)
 	cmds.register("feeds", handlerListFeeds)
 	cmds.register("addfeed", middlewareLoggedIn(handlerAddFeed))
 	cmds.register("follow", middlewareLoggedIn(handlerFollowFeed))
 	cmds.register("following", middlewareLoggedIn(handlerFollowing))
 	cmds.register("unfollow", middlewareLoggedIn(handlerUnfollowFeed))
+	cmds.register("browse", middlewareLoggedIn(handlerBrowse))
 
 	// Check if the length of arguments is at least 2
 	if len(os.Args) < 2 {

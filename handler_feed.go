@@ -6,12 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	pq2 "github.com/lib/pq"
 	"github.com/subi/gator/internal/database"
 	"html"
 	"io"
 	"net/http"
 	"time"
 )
+
+const duplicateURLKeyError = "23505"
 
 type Feed struct {
 	Channel struct {
@@ -29,7 +32,7 @@ type Item struct {
 	PubDate     string `xml:"pubDate"`
 }
 
-func handlerFetchFeed(s *state, cmd Command) error {
+func handlerFetchFeed(s *state, cmd Command, url string, feedId uuid.UUID) error {
 	c := &http.Client{}
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, url, nil)
 	if err != nil {
@@ -51,7 +54,26 @@ func handlerFetchFeed(s *state, cmd Command) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s\n", html.UnescapeString(string(data)))
+	var pq *pq2.Error
+	for _, item := range feedContent.Channel.Item {
+		_, err = s.db.CreatPosts(context.Background(), database.CreatPostsParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       item.Title,
+			Url:         item.Link,
+			Description: escapedString(item.Description),
+			PublishedAt: item.PubDate,
+			FeedID:      feedId,
+		})
+		if err != nil {
+			errors.As(err, &pq)
+			if pq.Code == duplicateURLKeyError {
+				continue
+			}
+			return err
+		}
+	}
 	return nil
 }
 
@@ -142,4 +164,43 @@ func handlerUnfollowFeed(s *state, cmd Command, user database.User) error {
 		return err
 	}
 	return nil
+}
+
+func initScrape(s *state, cmd Command) error {
+	if len(cmd.args) < 1 {
+		return errors.New("please provide a interval")
+	}
+	duration := cmd.args[0]
+	parsedInterval, err := time.ParseDuration(duration)
+	if err != nil {
+		return err
+	}
+	ticker := time.NewTicker(parsedInterval)
+	for ; ; <-ticker.C {
+		fmt.Printf("Collecting feed every %s\n", cmd.args[0])
+		err = scrapeFeed(s, cmd)
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func scrapeFeed(s *state, cmd Command) error {
+	f, err := s.db.GetNextFeedFetch(context.Background())
+	if err != nil {
+		return err
+	}
+	err = s.db.MarkFeedFetched(context.Background(), f.ID)
+	if err != nil {
+		return err
+	}
+	err = handlerFetchFeed(s, cmd, f.Url, f.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func escapedString(s string) string {
+	return html.UnescapeString(s)
 }
